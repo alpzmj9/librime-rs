@@ -82,20 +82,23 @@ impl Default for Syllabifier {
     }
 }
 
+impl From<(String, bool, bool)> for Syllabifier {
+    fn from(value: (String, bool, bool)) -> Self {
+        Self {
+            delimiters: value.0,
+            enable_completion: value.1,
+            strict_spelling: value.2,
+            corrector: None,
+        }
+    }
+}
+
 impl Syllabifier {
     pub fn new() -> Self {
         Syllabifier {
             delimiters: String::new(),
             enable_completion: false,
             strict_spelling: false,
-            corrector: None,
-        }
-    }
-    pub fn from(delimiters: String, enable_completion: bool, strict_spelling: bool) -> Self {
-        Syllabifier {
-            delimiters,
-            enable_completion,
-            strict_spelling,
             corrector: None,
         }
     }

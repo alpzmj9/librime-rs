@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::path::Path;
 
-pub(crate) fn compare_version_string(x: &str, y: &str) -> i32 {
+pub fn compare_version_string(x: &str, y: &str) -> i32 {
     let mut i = 0;
     let mut j = 0;
     let x_parts: Vec<&str> = x.split('.').collect();
@@ -31,17 +31,19 @@ pub(crate) fn compare_version_string(x: &str, y: &str) -> i32 {
     0
 }
 
-pub(crate) struct ChecksumComputer {
+pub struct ChecksumComputer {
     crc: Hasher,
 }
 
-impl ChecksumComputer {
-    pub fn new(initial_remainder: u32) -> Self {
+impl From<u32> for ChecksumComputer {
+    fn from(initial_remainder: u32) -> Self {
         let mut crc = Hasher::new();
         crc.update(&[initial_remainder as u8]);
         ChecksumComputer { crc }
     }
+}
 
+impl ChecksumComputer {
     pub fn process_file(&mut self, file_path: &Path) -> io::Result<()> {
         let mut file = File::open(file_path)?;
         let mut buffer = Vec::new();
@@ -56,8 +58,8 @@ impl ChecksumComputer {
 }
 
 #[inline]
-pub(crate) fn checksum(file_path: &Path) -> u32 {
-    let mut c = ChecksumComputer::new(0);
+pub fn checksum(file_path: &Path) -> u32 {
+    let mut c = ChecksumComputer::from(0);
     if let Err(e) = c.process_file(file_path) {
         eprintln!("Error processing file: {}", e);
         return 0;
