@@ -1,4 +1,5 @@
 use crc32fast::Hasher;
+use regex::Regex;
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::Path;
@@ -6,8 +7,9 @@ use std::path::Path;
 pub fn compare_version_string(x: &str, y: &str) -> i32 {
     let mut i = 0;
     let mut j = 0;
-    let x_parts: Vec<&str> = x.split('.').collect();
-    let y_parts: Vec<&str> = y.split('.').collect();
+    let re = Regex::new(r"[.-]").unwrap();
+    let x_parts: Vec<&str> = re.split(x).collect();
+    let y_parts: Vec<&str> = re.split(y).collect();
 
     while i < x_parts.len() || j < y_parts.len() {
         let v1 = if i < x_parts.len() {
