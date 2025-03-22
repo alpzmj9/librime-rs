@@ -1,38 +1,37 @@
 use crc32fast::Hasher;
 use regex::Regex;
-use std::fs::File;
-use std::io::{self, Read};
-use std::path::Path;
+use std::{
+    cmp::Ordering,
+    fs::File,
+    io::{self, Read},
+    path::Path,
+};
 
 pub fn compare_version_string(x: &str, y: &str) -> i32 {
-    let mut i = 0;
-    let mut j = 0;
     let re = Regex::new(r"[.-]").unwrap();
     let x_parts: Vec<&str> = re.split(x).collect();
     let y_parts: Vec<&str> = re.split(y).collect();
 
-    while i < x_parts.len() || j < y_parts.len() {
-        let v1 = if i < x_parts.len() {
-            x_parts[i].parse::<i32>().unwrap_or(0)
-        } else {
-            0
-        };
-        let v2 = if j < y_parts.len() {
-            y_parts[j].parse::<i32>().unwrap_or(0)
-        } else {
-            0
-        };
-        if v1 > v2 {
-            return 1;
-        } else if v1 < v2 {
-            return -1;
+    for i in 0..x_parts.len().max(y_parts.len()) {
+        let x_num = x_parts.get(i).and_then(extract_leading_number).unwrap_or(0);
+        let y_num = y_parts.get(i).and_then(extract_leading_number).unwrap_or(0);
+
+        match x_num.cmp(&y_num) {
+            Ordering::Greater => return 1,
+            Ordering::Less => return -1,
+            _ => {}
         }
-        i += 1;
-        j += 1;
     }
     0
 }
 
+fn extract_leading_number(s: &&str) -> Option<i32> {
+    s.chars()
+        .take_while(|c| c.is_ascii_digit())
+        .collect::<String>()
+        .parse()
+        .ok()
+}
 pub struct ChecksumComputer {
     crc: Hasher,
 }

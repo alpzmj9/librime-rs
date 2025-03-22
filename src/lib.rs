@@ -25,7 +25,8 @@ mod tests {
         assert_eq!(compare_version_string("1", "1.0.0"), 0);
         assert_eq!(compare_version_string("123", "3"), 1);
         assert_eq!(compare_version_string("1.10.1.rs", "1.10.1"), 0);
-        assert_eq!(compare_version_string("1.10.1-rs", "1.10c.1"), 1);
+        assert_eq!(compare_version_string("1.10.1rs", "1.10.1"), 0);
+        assert_eq!(compare_version_string("1.10.1-rs", "1.10c.1"), 0);
         assert_eq!(compare_version_string("2024-02-05", "0.40"), 1);
     }
 }
