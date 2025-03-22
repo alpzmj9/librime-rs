@@ -4,17 +4,11 @@ use std::{
     sync::Arc,
 };
 
-use super::spelling::{self, SpellingProperties, SpellingType};
-pub struct Prism;
-pub struct Corrector;
+use crate::dict::corrector::Corrector;
 
-type SyllableId = i32;
+use super::spelling::{SpellingProperties, SpellingType};
 
-type Vertex = (usize, SpellingType);
-type VertexQueue = BinaryHeap<Reverse<Vertex>>;
-
-const COMPLETION_PENALTY: f64 = -0.6931471805599453; // log(0.5)
-const CORRECTION_CREDIBILITY: f64 = -4.605170185988091; // log(0.01)
+pub type SyllableId = i32;
 
 #[derive(Clone)]
 struct EdgeProperties {
@@ -69,6 +63,7 @@ impl Default for SyllableGraph {
     }
 }
 
+#[derive(Debug)]
 pub struct Syllabifier {
     delimiters: String,
     enable_completion: bool,
@@ -93,6 +88,12 @@ impl From<(String, bool, bool)> for Syllabifier {
     }
 }
 
+type Vertex = (usize, SpellingType);
+type VertexQueue = BinaryHeap<Reverse<Vertex>>;
+
+const COMPLETION_PENALTY: f64 = -0.6931471805599453; // log(0.5)
+const CORRECTION_CREDIBILITY: f64 = -4.605170185988091; // log(0.01)
+
 impl Syllabifier {
     pub fn new() -> Self {
         Syllabifier {
@@ -103,29 +104,125 @@ impl Syllabifier {
         }
     }
 
-    // 公开方法
-    pub fn build_syllable_graph(
-        input: String,
-        prism: &mut Prism,
-        graph: &mut SyllableGraph,
-    ) -> i32 {
-        // 方法实现
-        0 // 返回一个示例整数
-    }
+    // TODO
+    /*  pub fn build_syllable_graph(
+            input: String,
+            prism: &mut Prism,
+            graph: &mut SyllableGraph,
+        ) -> i32 {
+            if input.is_empty() {
+                return 0;
+            };
 
-    // 公开方法
-    pub fn enable_correction(&mut self, corrector: Option<Box<Corrector>>) {
-        self.corrector = corrector;
-    }
-    // 其他 protected 方法
-    pub(crate) fn check_overlapped_spellings(
+            let mut farthest: usize = 0;
+            let mut queue: VertexQueue = BinaryHeap::new();
+            queue.push(Reverse((0, SpellingType::NormalSpelling))); // start
+
+            while let Some(Reverse(vertex)) = queue.pop() {
+                let current_pos = vertex.0;
+
+                // record a visit to the vertex
+                if !graph.vertices.contains_key(&current_pos) {
+                    graph.vertices.insert(current_pos, vertex.1); // preferred spelling type comes first
+                } else {
+                    // *graph.vertices.get_mut(&current_pos).unwrap() =
+                    //     std::cmp::min(vertex.1, *graph.vertices.get(&current_pos).unwrap());
+                    continue; // discard worse spelling types
+                }
+                if current_pos > farthest {
+                    farthest = current_pos;
+                    // 日志相关无法直接迁移 DLOG(INFO) << "current_pos: " << current_pos;
+
+                    // see where we can go by advancing a syllable
+                    todo!("依赖 dict/prism {}", farthest);
+                }
+            }
+
+            todo!(
+                "build_syllable_graph() 依赖其他代码，尚未实现{:?}， {}，{} ",
+                prism,
+                COMPLETION_PENALTY,
+                CORRECTION_CREDIBILITY
+            );
+        }
+
+        pub fn enable_correction(&mut self, corrector: Option<Box<Corrector>>) {
+            self.corrector = corrector;
+        }
+    */
+    /*pub(crate) fn check_overlapped_spellings0(
         &self,
-        graph: &mut SyllableGraph,
+        mut graph: Option<SyllableGraph>,
         start: usize,
         end: usize,
     ) {
-        // 方法实现
-    }
+        if let Some(mut graph) = graph {
+            // 遍历 indices 中的每个顶点
+            for (vertex_id, spelling_index) in &mut graph.indices {
+                // 遍历每个 SyllableId 对应的 SpellingPropertiesList
+                for (syllable_id, spelling_properties_list) in spelling_index {
+                    // 遍历每个 Arc<EdgeProperties>
+                    for edge_properties_arc in spelling_properties_list {
+                        // 获取 Arc 的可变引用
+                        if let Some(edge_properties) = Arc::get_mut(edge_properties_arc) {
+                            // 检查 end_pos 是否在指定的范围内
+
+                            // 修改 credibility 的值
+                            edge_properties.spelling_properties.credibility = 1.0;
+                        }
+                    }
+                }
+            }
+        }
+    }*/
+
+    /*
+        pub(crate) fn check_overlapped_spellings(
+            &self,
+            mut graph: Option<SyllableGraph>,
+            start: usize,
+            end: usize,
+        ) {
+            const PENALTY_FOR_AMBIGUOUS_SYLLABLE: f64 = -23.025850929940457; // log(1e-10)
+
+            let Some(graph) = graph.as_mut() else {
+                return;
+            };
+
+            let Some(y_end_vertices) = graph.edges.get_mut(&start) else {
+                return;
+            };
+
+            // if "Z" = "YX", mark the vertex between Y and X an ambiguous syllable joint
+            // enumerate Ys
+            for (joint, _) in y_end_vertices.iter_mut() {
+                if *joint >= end {
+                    break;
+                }
+
+                // test X
+                if let Some(x_end_vertices) = graph.edges.get_mut(joint) {
+                    for (x_key, x_value) in x_end_vertices.iter_mut() {
+                        if x_key < &end {
+                            continue;
+                        }
+                        if x_key == &end {
+                            x_value.get_mut(&1).unwrap().spelling_properties.credibility += 1.0;
+                            // discourage syllables at an ambiguous joint
+                            // bad cases include pinyin syllabification "niju'ede"
+                            for spelling in x_value.values_mut() {
+                                spelling.spelling_properties.credibility +=
+                                    PENALTY_FOR_AMBIGUOUS_SYLLABLE;
+                            }
+                        }
+                    }
+                }
+            }
+
+            todo!(" 方法还没实现呢{},{}", start, end);
+            // 方法实现
+        }
+    */
 
     pub(crate) fn transpose(&self, graph: &mut SyllableGraph) {
         for (start, end_map) in &graph.edges {

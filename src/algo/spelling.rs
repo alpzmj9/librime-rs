@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum SpellingType {
     NormalSpelling,
     FuzzySpelling,
@@ -10,10 +10,10 @@ pub(crate) enum SpellingType {
 
 #[derive(Debug, Clone)]
 pub(crate) struct SpellingProperties {
-    spelling_type: SpellingType,
-    end_pos: usize,
-    credibility: f64,
-    tips: String,
+    pub spelling_type: SpellingType,
+    pub end_pos: usize,
+    pub credibility: f64,
+    pub tips: String,
 }
 
 impl Default for SpellingProperties {
