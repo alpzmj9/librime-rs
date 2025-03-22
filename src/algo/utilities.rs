@@ -61,9 +61,6 @@ impl ChecksumComputer {
 #[inline]
 pub fn checksum(file_path: &Path) -> u32 {
     let mut c = ChecksumComputer::from(0);
-    if let Err(e) = c.process_file(file_path) {
-        eprintln!("Error processing file: {}", e);
-        return 0;
-    }
+    c.process_file(file_path).expect("File processing failed");
     c.checksum()
 }
