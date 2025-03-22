@@ -1,6 +1,9 @@
 [package]
+authors = ["Monine Melolaris <alpzmj9@icloud.com>"]
 edition = "2024"
+license = "MPL-2.0"
 name = "rime"
+repository = "https://github.com/rime-rs/librime-rs.git"
 version = "0.1.0"
 
 [dependencies]
